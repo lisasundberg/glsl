@@ -1,14 +1,17 @@
 const vshader = `
 	void main() {
-		gl_Position = projectionMatrix * modelViewMatrix * vec4(position * 0.5, 1.0);
+		gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
 	}
 `;
 
 const fshader = `
+	uniform vec2 u_mouse;
+	uniform vec2 u_resolution;
 	uniform vec3 u_color; // must be declared outside the main function
 	// gl_FragColor = vec4(1.0, 1.0, 0.0, 1.0);
 	void main() {
-		gl_FragColor = vec4(u_color, 1.0).grba;
+		vec3 color = vec3(u_mouse.x/u_resolution.x, 0.0, u_mouse/u_resolution.y);
+		gl_FragColor = vec4(color, 1.0);
 	}
 `;
 
@@ -30,7 +33,7 @@ const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 10); // This came
 ////////////////////////////////////////////////////////////////////////////////
 const renderer = new THREE.WebGLRenderer(); // WebGL uses the OpenGL ES library.
 renderer.setSize(window.innerWidth, window.innerHeight); // when the renderer is initialized it creates a canvas (domELement)
-document.body.appendChild(renderer.domElement); // add this domElement to the body
+document.body.appendChild(renderer.domElement); // add this domElement to body
 
 ////////////////////////////////////////////////////////////////////////////////
 // GEOMETRY
@@ -38,15 +41,21 @@ document.body.appendChild(renderer.domElement); // add this domElement to the bo
 const geometry = new THREE.PlaneGeometry(2, 2); // width, height
 
 ////////////////////////////////////////////////////////////////////////////////
-// MATERIAL
+// UNIFORMS
 ////////////////////////////////////////////////////////////////////////////////
-// Set the color of the shader from js
-// 0x signifies it's a hex value
-// A THREE.js color translates to a vec3 type
+// Uniforms are used to pass data between the control program and the shaders
+// The name uniform is used to indicate that this value will be the same for each vertex and each pixel
+
 const uniforms = {
-	u_color: { value: new THREE.Color(0x00FF00) }
+	u_time: { value: 0.0 },
+	u_mouse: { value: { x: 0.0, y: 0.0 }},
+	u_resolution: { value: { x: 0.0, y: 0.0 }},
+	u_color: { value: new THREE.Color(0x00FF00) } // 0x signifies it's a hex value. A THREE.js color translates to a vec3 type
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// MATERIAL
+////////////////////////////////////////////////////////////////////////////////
 const material = new THREE.ShaderMaterial({
 	uniforms: uniforms, // pass the color from the control program to the GLSL-shader
 	vertexShader: vshader,
@@ -68,13 +77,28 @@ camera.position.z = 1; // camera is one unit away from the plane
 ////////////////////////////////////////////////////////////////////////////////
 onWindowResize();
 
+if ('ontouchstart' in window) {
+	document.addEventListener('touchmove', mode);
+} else {
+	window.addEventListener('resize', onWindowResize, false);
+	document.addEventListener('mousemove', move);
+}
+
 animate();
+
+
+function move(event) {
+	// If the event object contains a property called touches, we're using a touch device
+	// Then we need to use the first value in the touches array the get the mouse value
+	uniforms.u_mouse.value.x = event.touches ? event.touches[0].clientX : event.clientX;
+	uniforms.u_mouse.value.y = event.touches ? event.touches[0].clientY : event.clientY;
+}
 
 //End of your code
 // Render the scene.
 function animate() {
-  requestAnimationFrame( animate );
-  renderer.render( scene, camera );
+  requestAnimationFrame(animate);
+  renderer.render(scene, camera);
 }
 
 // render the plane so it fills the screen regardless of the aspect ratio
@@ -94,4 +118,9 @@ function onWindowResize( event ) {
   camera.bottom = -height;
   camera.updateProjectionMatrix();
   renderer.setSize( window.innerWidth, window.innerHeight );
+
+  if (uniforms.u_resolution !== undefined) {
+	  uniforms.u_resolution.value.x = window.innerWidth;
+	  uniforms.u_resolution.value.y = window.innerHeight;
+  }
 }
