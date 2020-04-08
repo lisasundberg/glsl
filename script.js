@@ -9,8 +9,16 @@ const fshader = `
 	uniform vec2 u_resolution;
 	uniform vec3 u_color; // must be declared outside the main function
 	// gl_FragColor = vec4(1.0, 1.0, 0.0, 1.0);
+
 	void main() {
-		vec3 color = vec3(u_mouse.x/u_resolution.x, 0.0, u_mouse.y/u_resolution.y);
+		// GLSL will divide the first component of u_mouse with the first component of u_resolution, and the second by the second
+		// so I can acces the kvot using v.x and v.y
+		vec2 v = u_mouse / u_resolution;
+
+		// Color based on mouse position. Top left is 0,0, so: rgb(0,0,0)
+		// bottom right is (window.innerWidth, window.innerHeight) so like rgb(1200, 0, 800)
+
+		vec3 color = vec3(v.x, 0.0, v.y); // same as vec3(u_mouse.x/u_resolution.x, 0.0, u_mouse.y/u_resolution.y);
 		gl_FragColor = vec4(color, 1.0);
 	}
 `;
