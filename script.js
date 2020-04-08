@@ -10,7 +10,7 @@ const fshader = `
 	uniform vec3 u_color; // must be declared outside the main function
 	// gl_FragColor = vec4(1.0, 1.0, 0.0, 1.0);
 	void main() {
-		vec3 color = vec3(u_mouse.x/u_resolution.x, 0.0, u_mouse/u_resolution.y);
+		vec3 color = vec3(u_mouse.x/u_resolution.x, 0.0, u_mouse.y/u_resolution.y);
 		gl_FragColor = vec4(color, 1.0);
 	}
 `;
