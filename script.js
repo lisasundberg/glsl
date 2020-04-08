@@ -5,6 +5,7 @@ const vshader = `
 `;
 
 const fshader = `
+	uniform float u_time;
 	uniform vec2 u_mouse;
 	uniform vec2 u_resolution;
 	uniform vec3 u_color; // must be declared outside the main function
@@ -18,7 +19,13 @@ const fshader = `
 		// Color based on mouse position. Top left is 0,0, so: rgb(0,0,0)
 		// bottom right is (window.innerWidth, window.innerHeight) so like rgb(1200, 0, 800)
 
-		vec3 color = vec3(v.x, 0.0, v.y); // same as vec3(u_mouse.x/u_resolution.x, 0.0, u_mouse.y/u_resolution.y);
+		// vec3 color = vec3(v.x, 0.0, v.y); // same as vec3(u_mouse.x/u_resolution.x, 0.0, u_mouse.y/u_resolution.y);
+
+		vec3 color = vec3((sin(u_time) + 1.0) / 2.0, 0.0, (cos(u_time) + 1.0) / 2.0);
+		// sin() returns a value between -1.0 and 1.0.
+		// Color channels need a value between 0.0 and 1.0. How make it return a value between 0.0-1.0 instead?
+		// sin(x) + 1.0 returns a value between 0.0 and 2.0, and 2.0/2 = 1.0
+
 		gl_FragColor = vec4(color, 1.0);
 	}
 `;
@@ -42,6 +49,11 @@ const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 10); // This came
 const renderer = new THREE.WebGLRenderer(); // WebGL uses the OpenGL ES library.
 renderer.setSize(window.innerWidth, window.innerHeight); // when the renderer is initialized it creates a canvas (domELement)
 document.body.appendChild(renderer.domElement); // add this domElement to body
+
+////////////////////////////////////////////////////////////////////////////////
+// CLOCK
+////////////////////////////////////////////////////////////////////////////////
+const clock = new THREE.Clock();
 
 ////////////////////////////////////////////////////////////////////////////////
 // GEOMETRY
@@ -107,6 +119,7 @@ function move(event) {
 function animate() {
   requestAnimationFrame(animate);
   renderer.render(scene, camera);
+  uniforms.u_time.value = clock.getElapsedTime();
 }
 
 // render the plane so it fills the screen regardless of the aspect ratio
