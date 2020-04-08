@@ -12,19 +12,37 @@ const fshader = `
 	// gl_FragColor = vec4(1.0, 1.0, 0.0, 1.0);
 
 	void main() {
-		// GLSL will divide the first component of u_mouse with the first component of u_resolution, and the second by the second
-		// so I can acces the kvot using v.x and v.y
+		// MOUSE POSITION
+		/*
+			Color based on mouse position. Top left is 0,0, so: rgb(0,0,0)
+			bottom right is (window.innerWidth, window.innerHeight) so like rgb(1200, 0, 800)
+			GLSL will divide the first component of u_mouse with the first component of u_resolution, and the second by the second
+			so I can acces the kvot using v.x and v.y
+		*/
 		vec2 v = u_mouse / u_resolution;
-
-		// Color based on mouse position. Top left is 0,0, so: rgb(0,0,0)
-		// bottom right is (window.innerWidth, window.innerHeight) so like rgb(1200, 0, 800)
-
 		// vec3 color = vec3(v.x, 0.0, v.y); // same as vec3(u_mouse.x/u_resolution.x, 0.0, u_mouse.y/u_resolution.y);
 
-		vec3 color = vec3((sin(u_time) + 1.0) / 2.0, 0.0, (cos(u_time) + 1.0) / 2.0);
+		// TIME
+		// vec3 color = vec3((sin(u_time) + 1.0) / 2.0, 0.0, (cos(u_time) + 1.0) / 2.0);
 		// sin() returns a value between -1.0 and 1.0.
 		// Color channels need a value between 0.0 and 1.0. How make it return a value between 0.0-1.0 instead?
 		// sin(x) + 1.0 returns a value between 0.0 and 2.0, and 2.0/2 = 1.0
+
+
+		// PIXEL POSITION ON SCREEN
+		/*
+			mix() is a GLSL-method that mixes two values mix(from, to, n). from + to + return value must be the same type
+			mix(from, to, 0.0) = from
+			mix(from, to, 1.0) = to
+
+			b blir gradient mellan!!!!
+		*/
+		vec2 uv = gl_FragCoord.xy / u_resolution;
+		// vec3 color = mix(vec3(1.0, 0.0, 0.0), vec3(0.0, 0.0, 1.0), uv.y);
+						// red		  			 // blue			  // the pixel's position on the screen
+
+		// vec3 color = mix(vec3(1.0, 0.0, 0.0) * (1.0 - 0.25), vec3(0.0, 0.0, 1.0) * 0.25, uv.y);
+		vec3 color = mix(vec3(v.x, 0.0, v.y), vec3(v.y, v.x, 1.0), uv.y);
 
 		gl_FragColor = vec4(color, 1.0);
 	}
