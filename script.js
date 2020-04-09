@@ -1,9 +1,9 @@
 const vshader = `
 	varying vec2 v_uv;
-	// varying vec3 v_position;
+	varying vec3 v_position;
 
 	void main() {
-		// v_position = position;
+		v_position = position;
 		v_uv = uv; // Here we are copying our uv value to our fragment shader
 		gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
 	}
@@ -12,11 +12,38 @@ const vshader = `
 const fshader = `
 	uniform vec2 u_resolution;
 	varying vec2 v_uv;
-	// varying vec3 v_position;
+	varying vec3 v_position;
 
 	void main(void) {
 		// vec3 color = vec3(v_position.x, v_position.y, 0.0);
-		vec3 color = vec3(v_uv.x, v_uv.y, 0.0);
+		// vec3 color = vec3(v_uv.x, v_uv.y, 0.0);
+		vec3 color = vec3(0.0);
+
+		// v_position
+		// top left: -1.0, -1.0, 0.0
+		// top right: 1.0, -1.0, 0.0
+		// bottom left: -0.1, 1.0, 0.0
+		// bottom right: 1.0, 1.0, 0.0
+
+		// since each color channel takes a value of 0-1, we limit the value using clamp()
+
+		/*
+			Red channel, x axis:
+			top left = 0 = no red
+			top right = 1 = 100% red
+			bottom left = 0 = no red
+			bottom right = 1 = 100% red
+		*/
+		color.r = clamp(v_position.x, 0.0, 1.0);
+
+		/*
+		  Green channel, y axis:
+		  top left = 0 = no green
+		  top right = 0 = no green
+		  bottom left = 1 = 100% green
+		  bottom right = 1 = 100% green
+	  	*/
+		color.g = clamp(v_position.y, 0.0, 1.0);
 
 		// vec2 uv = gl_FragCoord.xy / u_resolution;
 		// vec3 color = mix(vec3(1.0, 0.0, 0.0), vec3(0.0, 0.0, 1.0), uv.y);
