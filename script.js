@@ -1,22 +1,17 @@
 const vshader = `
-	varying vec2 v_uv;
 	varying vec3 v_position;
 
 	void main() {
 		v_position = position;
-		v_uv = uv; // Here we are copying our uv value to our fragment shader
 		gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
 	}
 `;
 
 const fshader = `
 	uniform vec2 u_resolution;
-	varying vec2 v_uv;
 	varying vec3 v_position;
 
 	void main(void) {
-		// vec3 color = vec3(v_position.x, v_position.y, 0.0);
-		// vec3 color = vec3(v_uv.x, v_uv.y, 0.0);
 		vec3 color = vec3(0.0);
 
 		// v_position
@@ -34,7 +29,12 @@ const fshader = `
 			bottom left = 0 = no red
 			bottom right = 1 = 100% red
 		*/
-		color.r = clamp(v_position.x, 0.0, 1.0);
+		// color.r = clamp(v_position.x, 0.0, 1.0); // smooth edge
+
+		// Check if the vertex's x-position is less than 0.0. If yes return 0.0, if no return 1.0
+		// (0.0, 0.0) is the center, so anything to the left of the center will return less than 0.0
+		// color.r = step(0.0, v_position.x); // hard edge
+		color.r = step(-0.4, v_position.x); // v_position.x will never be less than -1.0 so it always returns 1.0
 
 		/*
 		  Green channel, y axis:
@@ -43,10 +43,12 @@ const fshader = `
 		  bottom left = 1 = 100% green
 		  bottom right = 1 = 100% green
 	  	*/
-		color.g = clamp(v_position.y, 0.0, 1.0);
+		// color.g = clamp(v_position.y, 0.0, 1.0); // smooth edge
+		// color.g = step(0.0, v_position.y); // hard edge
+		color.g = smoothstep(-0.4, 0.0, v_position.y); // v_position.y will never be less than -1.0 so it always returns 1.0
 
 		// vec2 uv = gl_FragCoord.xy / u_resolution;
-		// vec3 color = mix(vec3(1.0, 0.0, 0.0), vec3(0.0, 0.0, 1.0), uv.y);
+		// vec3 color = mix(vec3(1.0,  0.0, 0.0), vec3(0.0, 0.0, 1.0), uv.y);
 		// vec3 color = vec3(v_uv.x, v_uv.y, 0.0);
 		gl_FragColor = vec4(color, 1.0);
 	}
